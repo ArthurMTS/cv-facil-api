@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model ProfExp {
+  id          Int     @id @default(autoincrement())
+  title       String
+  city        String
+  state       String
+  start       String
+  end         String
+  description String
+  CV          CV?     @relation(fields: [cVId], references: [id])
+  cVId        String?
+}
+
+model Competency {
+  id    Int     @id @default(autoincrement())
+  title String
+  CV    CV?     @relation(fields: [cVId], references: [id])
+  cVId  String?
+}
+
+model Certification {
+  id    Int     @id @default(autoincrement())
+  title String
+  year  Int
+  CV    CV?     @relation(fields: [cVId], references: [id])
+  cVId  String?
+}
+
+model CV {
+  id            String          @id @default(uuid())
+  userId        String
+  jobTitle      String          @db.VarChar(255)
+  phone         String
+  linkedin      String
+  github        String
+  resume        String
+  experiences   ProfExp[]
+  Competency    Competency[]
+  Certification Certification[]
+  user          User            @relation(fields: [userId], references: [id])
+  createdAt     DateTime        @default(now())
+}
+
+model User {
+  id       String  @id @default(uuid())
+  avatar   String
+  email    String  @unique
+  name     String?
+  password String
+  cvs      CV[]
+}
