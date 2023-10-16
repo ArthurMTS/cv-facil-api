@@ -3,6 +3,9 @@ import cors from "@fastify/cors";
 
 import { userRoutes } from "./routes/userRoutes";
 import { cvRoutes } from "./routes/cvRoutes";
+import { expRoutes } from "./routes/expRoutes";
+import { compRoutes } from "./routes/compRoutes";
+import { certRoutes } from "./routes/certRoutes";
 
 const app = fastify();
 
@@ -12,6 +15,9 @@ app.register(cors, {
 });
 app.register(userRoutes);
 app.register(cvRoutes);
+app.register(expRoutes);
+app.register(compRoutes);
+app.register(certRoutes);
 
 const port = Number(process.env.PORT) || 3333;
 

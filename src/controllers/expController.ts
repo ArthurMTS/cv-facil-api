@@ -1,7 +1,7 @@
 import { FastifyReply, FastifyRequest } from "fastify";
+import { z } from "zod";
 
 import { prisma } from "../config/db";
-import { z } from "zod";
 
 async function Create(request: FastifyRequest, reply: FastifyReply) {
   const BodySchema = z.object({
@@ -13,7 +13,6 @@ async function Create(request: FastifyRequest, reply: FastifyReply) {
     start: z.string(),
     end: z.string(),
   });
-
   const { cVId, title, city, state, description, start, end } =
     BodySchema.parse(request.body);
 
@@ -33,11 +32,10 @@ async function Create(request: FastifyRequest, reply: FastifyReply) {
 }
 
 async function List(request: FastifyRequest, reply: FastifyReply) {
-  const ParamsSchema = z.object({
+  const QuerySchema = z.object({
     cVId: z.string().uuid(),
   });
-
-  const { cVId } = ParamsSchema.parse(request.params);
+  const { cVId } = QuerySchema.parse(request.query);
 
   const exps = await prisma.profExp.findMany({
     where: {
@@ -50,11 +48,10 @@ async function List(request: FastifyRequest, reply: FastifyReply) {
 
 async function Update(request: FastifyRequest, reply: FastifyReply) {
   const ParamsSchema = z.object({
-    id: z.number(),
+    id: z.string(),
   });
 
   const BodySchema = z.object({
-    cVId: z.string().uuid(),
     title: z.string().optional(),
     city: z.string().optional(),
     state: z.string().optional(),
@@ -63,8 +60,9 @@ async function Update(request: FastifyRequest, reply: FastifyReply) {
     end: z.string().optional(),
   });
 
-  const { cVId, title, city, state, description, start, end } =
-    BodySchema.parse(request.body);
+  const { title, city, state, description, start, end } = BodySchema.parse(
+    request.body,
+  );
   const { id } = ParamsSchema.parse(request.params);
 
   await prisma.profExp.update({
@@ -77,8 +75,7 @@ async function Update(request: FastifyRequest, reply: FastifyReply) {
       end,
     },
     where: {
-      id,
-      cVId,
+      id: +id,
     },
   });
 
@@ -86,35 +83,28 @@ async function Update(request: FastifyRequest, reply: FastifyReply) {
 }
 
 async function Delete(request: FastifyRequest, reply: FastifyReply) {
-  const ParamsSchema = z.object({
-    id: z.number(),
+  const QuerySchema = z.object({
+    id: z.string().optional(),
+    cVId: z.string().uuid().optional(),
   });
+  const { id, cVId } = QuerySchema.parse(request.query);
 
-  const { id } = ParamsSchema.parse(request.params);
-
-  await prisma.profExp.delete({
-    where: {
-      id,
-    },
-  });
+  if (id && !cVId)
+    await prisma.profExp.delete({
+      where: {
+        id: +id,
+      },
+    });
+  else if (!id && cVId)
+    await prisma.profExp.deleteMany({
+      where: {
+        cVId,
+      },
+    });
+  else 
+    return reply.status(400).send();
 
   return reply.status(204).send();
 }
 
-async function DeleteAll(request: FastifyRequest, reply: FastifyReply) {
-  const ParamsSchema = z.object({
-    cVId: z.string().uuid(),
-  });
-
-  const { cVId } = ParamsSchema.parse(request.params);
-
-  await prisma.profExp.deleteMany({
-    where: {
-      cVId,
-    },
-  });
-
-  return reply.status(204).send();
-}
-
-export { Create, List, Update, Delete, DeleteAll };
+export { Create, List, Update, Delete };

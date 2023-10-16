@@ -35,7 +35,6 @@ async function List(request: FastifyRequest, reply: FastifyReply) {}
 
 async function Update(request: FastifyRequest, reply: FastifyReply) {
   const BodySchema = z.object({
-    userId: z.string().uuid(),
     job: z.string().optional(),
     phone: z.string().optional(),
     linkedin: z.string().optional(),
