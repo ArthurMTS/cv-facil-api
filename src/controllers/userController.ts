@@ -1,4 +1,4 @@
-import fastify, { FastifyReply, FastifyRequest } from "fastify";
+import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { prisma } from "../config/db";
 import { ParamsSchema } from "../config/zod";
@@ -18,7 +18,8 @@ async function Create(request: FastifyRequest, reply: FastifyReply) {
 }
 
 async function List(request: FastifyRequest, reply: FastifyReply) {
-
+  const users = await prisma.user.findMany();
+  return reply.status(200).send(users);
 }
 
 async function Update(request: FastifyRequest, reply: FastifyReply) {
@@ -32,13 +33,17 @@ async function Update(request: FastifyRequest, reply: FastifyReply) {
   const { name, email, avatar, password } = BodySchema.parse(request.body);
   const User = await prisma.user.update({
     data: { name, email, avatar, password },
-    where:{id}
+    where: { id },
   });
   return reply.status(204).send(User);
 }
 
 async function Delete(request: FastifyRequest, reply: FastifyReply) {
-
+  const { id } = ParamsSchema.parse(request.params);
+  const User = await prisma.user.delete({
+    where: { id },
+  });
+  return reply.status(204).send();
 }
 
 export { Create, List, Update, Delete };
