@@ -2,13 +2,7 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import { prisma } from "../config/db";
 import { ParamsSchema } from "../config/zod";
 
-async function Create(request: FastifyRequest, reply: FastifyReply) {
-  const data = request.body as any;
-
-  const user = await prisma.user.create({
-    data,
-  });
-}
+async function Create(request: FastifyRequest, reply: FastifyReply) {}
 
 async function List(request: FastifyRequest, reply: FastifyReply) {
   const users = await prisma.user.findMany();
