@@ -35,25 +35,22 @@ async function List(request: FastifyRequest, reply: FastifyReply) {
   const QueryParamsSchema = z.object({
     search: z.string().optional(),
   });
-
+  const { id } = ParamsSchema.parse(request.params);
   const queryParams = QueryParamsSchema.parse(request.query);
 
   let cvs: any;
 
-  if (queryParams.search) {
-    if (queryParams.search.match(/^[A-Za-z]+/)) {
-      cvs = await prisma.cV.findMany({
-        where: {
-          jobTitle: { contains: queryParams.search },
-        },
-      });
-    } else {
-      cvs = await prisma.cV.findMany({
-        where: { userId: queryParams.search },
-      });
-    }
+  if (queryParams.search?.match(/^[A-Za-z]+/)) {
+    cvs = await prisma.cV.findMany({
+      where: {
+        jobTitle: { contains: queryParams.search },
+        userId: id,
+      },
+    });
   } else {
-    cvs = await prisma.cV.findMany();
+    cvs = await prisma.cV.findMany({
+      where: { userId: id },
+    });
   }
 
   reply.send(cvs);
@@ -94,24 +91,20 @@ async function Delete(request: FastifyRequest, reply: FastifyReply) {
     id: z.string().uuid(),
   });
 
-  const queryParams = QueryParamsSchema.parse(request.query);
+  const queryParams = QueryParamsSchema.parse(request.params);
 
   const search = queryParams.id;
 
   let deletedCVs = [];
 
-  if (search) {
-    const deletedCV = await prisma.cV.delete({
-      where: {
-        id: search,
-      },
-    });
-    deletedCVs.push(deletedCV);
+  const deletedCV = await prisma.cV.delete({
+    where: {
+      id: search,
+    },
+  });
+  deletedCVs.push(deletedCV);
 
-    reply.send(deletedCVs);
-  } else {
-    reply.status(400).send('O parâmetro "search" é obrigatório para exclusão.');
-  }
+  reply.send(deletedCVs);
 }
 
 export { Create, List, Update, Delete };
