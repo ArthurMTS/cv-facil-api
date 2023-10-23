@@ -14,7 +14,7 @@ async function Create(request: FastifyRequest, reply: FastifyReply) {
     resume: z.string(),
   });
   const { userId, job, phone, linkedin, github, resume } = BodySchema.parse(
-    request.body,
+    request.body
   );
 
   const cv = await prisma.cV.create({
@@ -31,7 +31,33 @@ async function Create(request: FastifyRequest, reply: FastifyReply) {
   return reply.status(201).send(cv.id);
 }
 
-async function List(request: FastifyRequest, reply: FastifyReply) {}
+async function List(request: FastifyRequest, reply: FastifyReply) {
+  const QueryParamsSchema = z.object({
+    search: z.string().optional(),
+  });
+
+  const queryParams = QueryParamsSchema.parse(request.query);
+
+  let cvs: any;
+
+  if (queryParams.search) {
+    if (queryParams.search.match(/^[A-Za-z]+/)) {
+      cvs = await prisma.cV.findMany({
+        where: {
+          jobTitle: { contains: queryParams.search },
+        },
+      });
+    } else {
+      cvs = await prisma.cV.findMany({
+        where: { userId: queryParams.search },
+      });
+    }
+  } else {
+    cvs = await prisma.cV.findMany();
+  }
+
+  reply.send(cvs);
+}
 
 async function Update(request: FastifyRequest, reply: FastifyReply) {
   const BodySchema = z.object({
@@ -44,7 +70,7 @@ async function Update(request: FastifyRequest, reply: FastifyReply) {
 
   const { id } = ParamsSchema.parse(request.params);
   const { job, phone, linkedin, github, resume } = BodySchema.parse(
-    request.body,
+    request.body
   );
 
   await prisma.cV.update({
@@ -63,6 +89,29 @@ async function Update(request: FastifyRequest, reply: FastifyReply) {
   return reply.status(204).send();
 }
 
-async function Delete(request: FastifyRequest, reply: FastifyReply) {}
+async function Delete(request: FastifyRequest, reply: FastifyReply) {
+  const QueryParamsSchema = z.object({
+    id: z.string().uuid(),
+  });
+
+  const queryParams = QueryParamsSchema.parse(request.query);
+
+  const search = queryParams.id;
+
+  let deletedCVs = [];
+
+  if (search) {
+    const deletedCV = await prisma.cV.delete({
+      where: {
+        id: search,
+      },
+    });
+    deletedCVs.push(deletedCV);
+
+    reply.send(deletedCVs);
+  } else {
+    reply.status(400).send('O parâmetro "search" é obrigatório para exclusão.');
+  }
+}
 
 export { Create, List, Update, Delete };

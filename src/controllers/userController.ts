@@ -5,19 +5,19 @@ import { prisma } from "../config/db";
 
 async function Create(request: FastifyRequest, reply: FastifyReply) {
   const BodySchema = z.object({
+    avatar: z.string(),
     email: z.string().email(),
     name: z.string(),
-    avatar: z.string(),
     password: z.string(),
   });
 
-  const { name, email, avatar, password } = BodySchema.parse(request.body);
+  const { avatar, email, name, password } = BodySchema.parse(request.body);
 
   const user = await prisma.user.create({
     data: {
-      name,
-      email,
       avatar,
+      email,
+      name,
       password,
     },
   });
