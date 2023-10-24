@@ -14,7 +14,7 @@ async function Create(request: FastifyRequest, reply: FastifyReply) {
     resume: z.string(),
   });
   const { userId, job, phone, linkedin, github, resume } = BodySchema.parse(
-    request.body
+    request.body,
   );
 
   const cv = await prisma.cV.create({
@@ -32,28 +32,40 @@ async function Create(request: FastifyRequest, reply: FastifyReply) {
 }
 
 async function List(request: FastifyRequest, reply: FastifyReply) {
-  const QueryParamsSchema = z.object({
+  const QuerySchema = z.object({
     search: z.string().optional(),
   });
-  const { id } = ParamsSchema.parse(request.params);
-  const queryParams = QueryParamsSchema.parse(request.query);
+  const ParamsSchema = z.object({
+    userId: z.string().uuid(),
+  });
+  const { userId } = ParamsSchema.parse(request.params);
+  const { search } = QuerySchema.parse(request.query);
 
-  let cvs: any;
+  let cvs;
 
-  if (queryParams.search?.match(/^[A-Za-z]+/)) {
+  if (search)
     cvs = await prisma.cV.findMany({
       where: {
-        jobTitle: { contains: queryParams.search },
-        userId: id,
+        jobTitle: { contains: search },
+        userId,
       },
     });
-  } else {
+  else
     cvs = await prisma.cV.findMany({
-      where: { userId: id },
+      where: { userId },
     });
-  }
 
   reply.send(cvs);
+}
+
+async function Show(request: FastifyRequest, reply: FastifyReply) {
+  const { id } = ParamsSchema.parse(request.params);
+
+  const cv = await prisma.cV.findMany({
+    where: { id },
+  });
+
+  reply.send(cv);
 }
 
 async function Update(request: FastifyRequest, reply: FastifyReply) {
@@ -67,7 +79,7 @@ async function Update(request: FastifyRequest, reply: FastifyReply) {
 
   const { id } = ParamsSchema.parse(request.params);
   const { job, phone, linkedin, github, resume } = BodySchema.parse(
-    request.body
+    request.body,
   );
 
   await prisma.cV.update({
@@ -87,24 +99,15 @@ async function Update(request: FastifyRequest, reply: FastifyReply) {
 }
 
 async function Delete(request: FastifyRequest, reply: FastifyReply) {
-  const QueryParamsSchema = z.object({
-    id: z.string().uuid(),
-  });
+  const { id } = ParamsSchema.parse(request.params);
 
-  const queryParams = QueryParamsSchema.parse(request.params);
-
-  const search = queryParams.id;
-
-  let deletedCVs = [];
-
-  const deletedCV = await prisma.cV.delete({
+  await prisma.cV.delete({
     where: {
-      id: search,
+      id,
     },
   });
-  deletedCVs.push(deletedCV);
 
-  reply.send(deletedCVs);
+  reply.status(204).send();
 }
 
-export { Create, List, Update, Delete };
+export { Create, List, Show, Update, Delete };

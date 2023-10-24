@@ -1,6 +1,12 @@
 import { FastifyInstance } from "fastify";
 
-import { Create, List, Update, Delete, Show } from "../controllers/userController";
+import {
+  Create,
+  List,
+  Update,
+  Delete,
+  Show,
+} from "../controllers/userController";
 
 export async function userRoutes(app: FastifyInstance) {
   app.get("/users", List);
