@@ -1,4 +1,5 @@
 import { FastifyReply, FastifyRequest } from "fastify";
+import bcrypt from "bcryptjs";
 import { z } from "zod";
 
 import { prisma } from "../config/db";
@@ -17,8 +18,9 @@ async function Create(request: FastifyRequest, reply: FastifyReply) {
   let user;
 
   try {
+    const hashedPassword = await bcrypt.hash(password, 10);
     user = await prisma.user.create({
-      data: { name, email, avatar, password },
+      data: { name, email, avatar, password: hashedPassword },
     });
   } catch (err) {
     return reply.status(500).send(err);
