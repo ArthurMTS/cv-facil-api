@@ -5,6 +5,7 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model ProfExp {
@@ -15,14 +16,14 @@ model ProfExp {
   start       String
   end         String
   description String
-  CV          CV?     @relation(fields: [cVId], references: [id], onDelete: Cascade)
+  CV          CV?     @relation(fields: [cVId], references: [id])
   cVId        String?
 }
 
 model Competency {
   id    Int     @id @default(autoincrement())
   title String
-  CV    CV?     @relation(fields: [cVId], references: [id], onDelete: Cascade)
+  CV    CV?     @relation(fields: [cVId], references: [id])
   cVId  String?
 }
 
@@ -30,7 +31,7 @@ model Certification {
   id    Int     @id @default(autoincrement())
   title String
   year  Int
-  CV    CV?     @relation(fields: [cVId], references: [id], onDelete: Cascade)
+  CV    CV?     @relation(fields: [cVId], references: [id])
   cVId  String?
 }
 
@@ -45,7 +46,7 @@ model CV {
   experiences   ProfExp[]
   Competency    Competency[]
   Certification Certification[]
-  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user          User            @relation(fields: [userId], references: [id])
   createdAt     DateTime        @default(now())
 }
 
