@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 
 import {
-  // Create,
+  Create,
   List,
   Update,
   Delete,
@@ -9,9 +9,9 @@ import {
 } from "../controllers/userController";
 
 export async function userRoutes(app: FastifyInstance) {
-  app.get("/users", { preHandler: [app.authenticate] }, List);
-  app.get("/users/:id", { preHandler: [app.authenticate] }, Show);
-  // app.post("/users", { preHandler: [app.authenticate] }, Create);
-  app.put("/users/:id", { preHandler: [app.authenticate] }, Update);
-  app.delete("/users/:id", { preHandler: [app.authenticate] }, Delete);
+  app.get("/users", List);
+  app.get("/users/:id", Show);
+  app.post("/users", Create);
+  app.put("/users/:id", Update);
+  app.delete("/users/:id", Delete);
 }

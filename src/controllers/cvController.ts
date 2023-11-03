@@ -17,24 +17,18 @@ async function Create(request: FastifyRequest, reply: FastifyReply) {
     request.body,
   );
 
-  let cv;
+  const cv = await prisma.cV.create({
+    data: {
+      userId,
+      jobTitle: job,
+      phone,
+      linkedin,
+      github,
+      resume,
+    },
+  });
 
-  try {
-    cv = await prisma.cV.create({
-      data: {
-        userId,
-        jobTitle: job,
-        phone,
-        linkedin,
-        github,
-        resume,
-      },
-    });
-  } catch (err) {
-    return reply.status(500).send(err);
-  }
-
-  return reply.status(201).send(cv?.id);
+  return reply.status(201).send(cv.id);
 }
 
 async function List(request: FastifyRequest, reply: FastifyReply) {
@@ -49,21 +43,17 @@ async function List(request: FastifyRequest, reply: FastifyReply) {
 
   let cvs;
 
-  try {
-    if (search)
-      cvs = await prisma.cV.findMany({
-        where: {
-          jobTitle: { contains: search },
-          userId,
-        },
-      });
-    else
-      cvs = await prisma.cV.findMany({
-        where: { userId },
-      });
-  } catch (err) {
-    return reply.status(500).send(err);
-  }
+  if (search)
+    cvs = await prisma.cV.findMany({
+      where: {
+        jobTitle: { contains: search },
+        userId,
+      },
+    });
+  else
+    cvs = await prisma.cV.findMany({
+      where: { userId },
+    });
 
   reply.send(cvs);
 }
@@ -71,15 +61,9 @@ async function List(request: FastifyRequest, reply: FastifyReply) {
 async function Show(request: FastifyRequest, reply: FastifyReply) {
   const { id } = ParamsSchema.parse(request.params);
 
-  let cv;
-
-  try {
-    cv = await prisma.cV.findUnique({
-      where: { id },
-    });
-  } catch (err) {
-    return reply.status(500).send(err);
-  }
+  const cv = await prisma.cV.findMany({
+    where: { id },
+  });
 
   reply.send(cv);
 }
@@ -98,22 +82,18 @@ async function Update(request: FastifyRequest, reply: FastifyReply) {
     request.body,
   );
 
-  try {
-    await prisma.cV.update({
-      data: {
-        jobTitle: job,
-        phone,
-        linkedin,
-        github,
-        resume,
-      },
-      where: {
-        id,
-      },
-    });
-  } catch (err) {
-    return reply.status(500).send(err);
-  }
+  await prisma.cV.update({
+    data: {
+      jobTitle: job,
+      phone,
+      linkedin,
+      github,
+      resume,
+    },
+    where: {
+      id,
+    },
+  });
 
   return reply.status(204).send();
 }
@@ -121,15 +101,11 @@ async function Update(request: FastifyRequest, reply: FastifyReply) {
 async function Delete(request: FastifyRequest, reply: FastifyReply) {
   const { id } = ParamsSchema.parse(request.params);
 
-  try {
-    await prisma.cV.delete({
-      where: {
-        id,
-      },
-    });
-  } catch (err) {
-    return reply.status(500).send(err);
-  }
+  await prisma.cV.delete({
+    where: {
+      id,
+    },
+  });
 
   reply.status(204).send();
 }
