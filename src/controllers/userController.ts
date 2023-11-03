@@ -26,14 +26,26 @@ async function Create(request: FastifyRequest, reply: FastifyReply) {
     return reply.status(500).send(err);
   }
 
-  return reply.status(201).send(user?.id);
+  return reply.status(201).send({
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    avatar: user.avatar,
+  });
 }
 
 async function List(request: FastifyRequest, reply: FastifyReply) {
   let users;
 
   try {
-    users = await prisma.user.findMany();
+    users = await prisma.user.findMany({
+      select: {
+        name: true,
+        email: true,
+        id: true,
+        avatar: true,
+      },
+    });
   } catch (err) {
     return reply.status(500).send(err);
   }
@@ -49,6 +61,12 @@ async function Show(request: FastifyRequest, reply: FastifyReply) {
   try {
     user = await prisma.user.findUnique({
       where: { id },
+      select: {
+        name: true,
+        email: true,
+        id: true,
+        avatar: true,
+      },
     });
   } catch (err) {
     return reply.status(500).send(err);

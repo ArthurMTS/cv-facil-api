@@ -9,9 +9,9 @@ import {
 } from "../controllers/cvController";
 
 export async function cvRoutes(app: FastifyInstance) {
-  app.get("/cvs/:userId", List);
-  app.get("/cv/:id", Show);
-  app.post("/cvs", Create);
-  app.put("/cvs/:id", Update);
-  app.delete("/cvs/:id", Delete);
+  app.get("/cvs/:userId", { preHandler: [app.authenticate] }, List);
+  app.get("/cv/:id", { preHandler: [app.authenticate] }, Show);
+  app.post("/cvs", { preHandler: [app.authenticate] }, Create);
+  app.put("/cvs/:id", { preHandler: [app.authenticate] }, Update);
+  app.delete("/cvs/:id", { preHandler: [app.authenticate] }, Delete);
 }
