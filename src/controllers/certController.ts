@@ -11,13 +11,17 @@ async function Create(request: FastifyRequest, reply: FastifyReply) {
   });
   const { cVId, title, year } = BodySchema.parse(request.body);
 
-  await prisma.certification.create({
-    data: {
-      cVId,
-      title,
-      year,
-    },
-  });
+  try {
+    await prisma.certification.create({
+      data: {
+        cVId,
+        title,
+        year,
+      },
+    });
+  } catch (err) {
+    return reply.status(500).send(err);
+  }
 
   return reply.status(201).send();
 }
@@ -29,11 +33,17 @@ async function List(request: FastifyRequest, reply: FastifyReply) {
 
   const { cVId } = QuerySchema.parse(request.query);
 
-  const certifications = await prisma.certification.findMany({
-    where: {
-      cVId,
-    },
-  });
+  let certifications;
+
+  try {
+    certifications = await prisma.certification.findMany({
+      where: {
+        cVId,
+      },
+    });
+  } catch (err) {
+    return reply.status(500).send(err);
+  }
 
   return reply.status(200).send(certifications);
 }
@@ -42,7 +52,6 @@ async function Update(request: FastifyRequest, reply: FastifyReply) {
   const ParamsSchema = z.object({
     id: z.string(),
   });
-
   const BodySchema = z.object({
     title: z.string().optional(),
     year: z.number().optional(),
@@ -51,15 +60,19 @@ async function Update(request: FastifyRequest, reply: FastifyReply) {
   const { title, year } = BodySchema.parse(request.body);
   const { id } = ParamsSchema.parse(request.params);
 
-  await prisma.certification.update({
-    data: {
-      title,
-      year,
-    },
-    where: {
-      id: +id,
-    },
-  });
+  try {
+    await prisma.certification.update({
+      data: {
+        title,
+        year,
+      },
+      where: {
+        id: +id,
+      },
+    });
+  } catch (err) {
+    return reply.status(500).send(err);
+  }
 
   return reply.status(204).send();
 }
@@ -72,19 +85,23 @@ async function Delete(request: FastifyRequest, reply: FastifyReply) {
 
   const { id, cVId } = ParamsSchema.parse(request.query);
 
-  if (id && !cVId)
-    await prisma.certification.delete({
-      where: {
-        id: +id,
-      },
-    });
-  else if (!id && cVId)
-    await prisma.certification.deleteMany({
-      where: {
-        cVId,
-      },
-    });
-  else return reply.status(400).send();
+  try {
+    if (id && !cVId)
+      await prisma.certification.delete({
+        where: {
+          id: +id,
+        },
+      });
+    else if (!id && cVId)
+      await prisma.certification.deleteMany({
+        where: {
+          cVId,
+        },
+      });
+    else return reply.status(400).send();
+  } catch (err) {
+    return reply.status(500).send(err);
+  }
 
   return reply.status(204).send();
 }

@@ -1,4 +1,5 @@
 import { FastifyReply, FastifyRequest } from "fastify";
+import bcrypt from "bcryptjs";
 import { z } from "zod";
 
 import { prisma } from "../config/db";
@@ -11,15 +12,43 @@ async function Create(request: FastifyRequest, reply: FastifyReply) {
     email: z.string().email(),
     password: z.string(),
   });
+
   const { name, email, avatar, password } = BodySchema.parse(request.body);
-  const User = await prisma.user.create({
-    data: { name, email, avatar, password },
+
+  let user;
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    user = await prisma.user.create({
+      data: { name, email, avatar, password: hashedPassword },
+    });
+  } catch (err) {
+    return reply.status(500).send(err);
+  }
+
+  return reply.status(201).send({
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    avatar: user.avatar,
   });
-  return reply.status(201).send(User.id);
 }
 
 async function List(request: FastifyRequest, reply: FastifyReply) {
-  const users = await prisma.user.findMany();
+  let users;
+
+  try {
+    users = await prisma.user.findMany({
+      select: {
+        name: true,
+        email: true,
+        id: true,
+        avatar: true,
+      },
+    });
+  } catch (err) {
+    return reply.status(500).send(err);
+  }
 
   reply.send(users);
 }
@@ -27,9 +56,21 @@ async function List(request: FastifyRequest, reply: FastifyReply) {
 async function Show(request: FastifyRequest, reply: FastifyReply) {
   const { id } = ParamsSchema.parse(request.params);
 
-  const user = await prisma.user.findUnique({
-    where: { id },
-  });
+  let user;
+
+  try {
+    user = await prisma.user.findUnique({
+      where: { id },
+      select: {
+        name: true,
+        email: true,
+        id: true,
+        avatar: true,
+      },
+    });
+  } catch (err) {
+    return reply.status(500).send(err);
+  }
 
   if (!user) {
     return reply.status(404).send();
@@ -45,21 +86,34 @@ async function Update(request: FastifyRequest, reply: FastifyReply) {
     email: z.string().email().optional(),
     password: z.string().optional(),
   });
+
   const { id } = ParamsSchema.parse(request.params);
   const { name, email, avatar, password } = BodySchema.parse(request.body);
-  const User = await prisma.user.update({
-    data: { name, email, avatar, password },
-    where: { id },
-  });
-  return reply.status(204).send(User);
+
+  let user;
+
+  try {
+    user = await prisma.user.update({
+      data: { name, email, avatar, password },
+      where: { id },
+    });
+  } catch (err) {
+    return reply.status(500).send(err);
+  }
+
+  return reply.status(204).send(user);
 }
 
 async function Delete(request: FastifyRequest, reply: FastifyReply) {
   const { id } = ParamsSchema.parse(request.params);
 
-  await prisma.user.delete({
-    where: { id },
-  });
+  try {
+    await prisma.user.delete({
+      where: { id },
+    });
+  } catch (err) {
+    return reply.status(500).send(err);
+  }
 
   reply.status(204).send();
 }

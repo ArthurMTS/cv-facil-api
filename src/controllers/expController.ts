@@ -16,17 +16,21 @@ async function Create(request: FastifyRequest, reply: FastifyReply) {
   const { cVId, title, city, state, description, start, end } =
     BodySchema.parse(request.body);
 
-  await prisma.profExp.create({
-    data: {
-      cVId,
-      title,
-      city,
-      state,
-      description,
-      start,
-      end,
-    },
-  });
+  try {
+    await prisma.profExp.create({
+      data: {
+        cVId,
+        title,
+        city,
+        state,
+        description,
+        start,
+        end,
+      },
+    });
+  } catch (err) {
+    return reply.status(500).send(err);
+  }
 
   return reply.status(201).send();
 }
@@ -37,11 +41,17 @@ async function List(request: FastifyRequest, reply: FastifyReply) {
   });
   const { cVId } = QuerySchema.parse(request.query);
 
-  const exps = await prisma.profExp.findMany({
-    where: {
-      cVId,
-    },
-  });
+  let exps;
+
+  try {
+    exps = await prisma.profExp.findMany({
+      where: {
+        cVId,
+      },
+    });
+  } catch (err) {
+    return reply.status(500).send(err);
+  }
 
   return reply.status(200).send(exps);
 }
@@ -65,19 +75,23 @@ async function Update(request: FastifyRequest, reply: FastifyReply) {
   );
   const { id } = ParamsSchema.parse(request.params);
 
-  await prisma.profExp.update({
-    data: {
-      title,
-      city,
-      state,
-      description,
-      start,
-      end,
-    },
-    where: {
-      id: +id,
-    },
-  });
+  try {
+    await prisma.profExp.update({
+      data: {
+        title,
+        city,
+        state,
+        description,
+        start,
+        end,
+      },
+      where: {
+        id: +id,
+      },
+    });
+  } catch (err) {
+    return reply.status(500).send(err);
+  }
 
   return reply.status(204).send();
 }
@@ -89,20 +103,23 @@ async function Delete(request: FastifyRequest, reply: FastifyReply) {
   });
   const { id, cVId } = QuerySchema.parse(request.query);
 
-  if (id && !cVId)
-    await prisma.profExp.delete({
-      where: {
-        id: +id,
-      },
-    });
-  else if (!id && cVId)
-    await prisma.profExp.deleteMany({
-      where: {
-        cVId,
-      },
-    });
-  else 
-    return reply.status(400).send();
+  try {
+    if (id && !cVId)
+      await prisma.profExp.delete({
+        where: {
+          id: +id,
+        },
+      });
+    else if (!id && cVId)
+      await prisma.profExp.deleteMany({
+        where: {
+          cVId,
+        },
+      });
+    else return reply.status(400).send();
+  } catch (err) {
+    return reply.status(500).send(err);
+  }
 
   return reply.status(204).send();
 }
